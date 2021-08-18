@@ -1,11 +1,7 @@
 # -*- coding:utf-8 -*-
 # ! -*- coding: utf-8 -*-
-# bert做image caption任务，coco数据集
-# 通过Conditional Layer Normalization融入条件信息
-# 请参考：https://kexue.fm/archives/7124
 
 from __future__ import print_function
-import json
 import numpy as np
 from bert4keras.backend import keras, K
 from bert4keras.layers import Loss
@@ -19,7 +15,7 @@ from data_preprocess import read_caption_flickr, read_image
 
 # 模型配置
 maxlen = 64
-batch_size = 32
+batch_size = 4
 steps_per_epoch = 1000
 epochs = 20
 
