@@ -120,7 +120,7 @@ class AutoCaption(AutoRegressiveDecoder):
         segment_ids = np.zeros_like(token_ids)
         return self.last_token(model).predict([token_ids, segment_ids, image])
 
-    def generate(self, image, topk=1):
+    def generate(self, image, topk=2):
         if is_string(image):
             image = read_image(image)
         image = preprocess_input(image)
@@ -136,7 +136,7 @@ autocaption = AutoCaption(
 
 
 def just_show():
-    samples = [valid_data[i] for i in np.random.choice(len(valid_data), 2)]
+    samples = [valid_data[i] for i in np.random.choice(len(valid_data), 2)]  # 从valid_data中随机取两个
     for D in samples:
         img = image_path + D['image_id']
         print(u'image_id:', D['image_id'])
@@ -157,7 +157,7 @@ class Evaluator(keras.callbacks.Callback):
         # 保存最优
         if logs['loss'] <= self.lowest:
             self.lowest = logs['loss']
-            model.save_weights('./best_model.weights')
+            model.save('model/best_model.model')
         # 演示效果
         just_show()
 
@@ -169,11 +169,11 @@ if __name__ == '__main__':
 
     model.fit(
         train_generator.forfit(),
-        steps_per_epoch=steps_per_epoch,
+        steps_per_epoch=len(train_generator),
         epochs=epochs,
         callbacks=[evaluator]
     )
 
-else:
-
-    model.load_weights('./best_model.weights')
+# else:
+#
+#     model.load_weights('model/best_model.weights')

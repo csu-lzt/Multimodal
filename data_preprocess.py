@@ -60,8 +60,11 @@ def read_image(f, img_size=299):
 
 #
 if __name__ == "__main__":
+    import numpy as np
+
     data = read_caption_flickr(r'E:\暑期文件传输\多模态数据集\flickr 30k\flickr30k\results_20130124.token')
     train_data = data[0:31000]
     valid_data = data[31000:]
 
-    print(len(data))
+    samples = [valid_data[i] for i in np.random.choice(len(valid_data), 2)]
+    print(np.random.choice(len(valid_data), 2))
