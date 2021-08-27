@@ -13,6 +13,7 @@ from bert4keras.tokenizers import Tokenizer, load_vocab
 from bert4keras.optimizers import Adam
 from bert4keras.snippets import sequence_padding, is_string
 from bert4keras.snippets import DataGenerator, AutoRegressiveDecoder
+from bert4keras.snippets import WebServing
 from keras.models import Model
 from data_preprocess import read_caption_flickr, read_caption_cn, read_image
 import warnings
@@ -134,8 +135,18 @@ def show():
         print()
 
 
+def generate_caption(img):
+    caption = autocaption.generate(img)
+    return caption
+
+
 if __name__ == '__main__':
-    show()
-# else:
-#
-#     model.load_weights('model/best_model.weights')
+    # func：要转换为接口的函数，需要保证输出可以json化，即需要
+    # 保证json.dumps(func(inputs))能被执行成功；
+    # arguments：声明func所需参数，字典 key为参数名，
+    #                           值value[0]为对应的转换函数（接口获取到的参数值都是字符串型），value[1]为该参数是否必须；
+    arguments = {'input image': (None, True)}
+    web = WebServing(port=8864)
+    web.route('/image-caption', generate_caption, arguments)
+    web.start()
+    # 现在可以测试访问 http://127.0.0.1:8864/gen_synonyms?text=苹果多少钱一斤
