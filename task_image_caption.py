@@ -15,7 +15,7 @@ from bert4keras.optimizers import Adam
 from bert4keras.snippets import sequence_padding, is_string
 from bert4keras.snippets import DataGenerator, AutoRegressiveDecoder
 from keras.models import Model
-from data_preprocess import read_caption_flickr, read_image
+from data_preprocess import read_caption_flickr, read_caption_cn, read_image
 import warnings
 
 warnings.filterwarnings('ignore')
@@ -25,13 +25,30 @@ batch_size = 4
 steps_per_epoch = 1000
 epochs = 20
 
-# bert配置
-config_path = 'bert/uncased_L-12_H-768_A-12/bert_config.json'
-checkpoint_path = 'bert/uncased_L-12_H-768_A-12/bert_model.ckpt'
-dict_path = 'bert/uncased_L-12_H-768_A-12/vocab.txt'
+# ============================英文=======================================
+# # 英文bert配置
+# config_path = 'bert/uncased_L-12_H-768_A-12/bert_config.json'
+# checkpoint_path = 'bert/uncased_L-12_H-768_A-12/bert_model.ckpt'
+# dict_path = 'bert/uncased_L-12_H-768_A-12/vocab.txt'
+# # 数据路径
+# caption_path = 'data/flickr/flickr30k-caption/results_20130124.token'
+# image_path = 'data/flickr/flickr30k-images/'
+# # 加载数据
+# data = read_caption_flickr(caption_path)
+# train_data = data[0:31000]
+# valid_data = data[31000:]
+# ============================中文=======================================
+# 中文bert配置
+config_path = 'bert/roberta/bert_config.json'
+checkpoint_path = 'bert/roberta/bert_model.ckpt'
+dict_path = 'bert/roberta/vocab.txt'
 # 数据路径
-caption_path = 'data/flickr/flickr30k-caption/results_20130124.token'
-image_path = 'data/flickr/flickr30k-images/'
+caption_path = r'D:\Multi-Model Dataset\cn\ai_challenger_caption_train_20170902\caption_train_annotations_20170902.json'
+image_path = 'D:/Multi-Model Dataset/cn/ai_challenger_caption_train_20170902/caption_train_images_20170902/'
+# 加载数据
+data = read_caption_cn(caption_path)
+train_data = data[0:200000]
+valid_data = data[200000:]
 
 # 加载并精简词表，建立分词器
 token_dict, keep_tokens = load_vocab(
@@ -62,12 +79,6 @@ class data_generator(DataGenerator):
                 batch_segment_ids = sequence_padding(batch_segment_ids)
                 yield [batch_token_ids, batch_segment_ids, batch_images], None
                 batch_images, batch_token_ids, batch_segment_ids = [], [], []
-
-
-# 加载数据
-data = read_caption_flickr(caption_path)
-train_data = data[0:31000]
-valid_data = data[31000:]
 
 
 class CrossEntropy(Loss):
@@ -142,7 +153,7 @@ def just_show():
     for D in samples:
         img = image_path + D['image_id']
         print(u'image_id:', D['image_id'])
-        # print(u'url:', D['url'])
+        print(u'url:', D['url'])
         print(u'predict:', autocaption.generate(img))
         print(u'references:', D['caption'])
         print()

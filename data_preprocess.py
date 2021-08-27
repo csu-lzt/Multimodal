@@ -4,6 +4,8 @@
 '''
 import pandas as pd
 import cv2
+from tqdm import tqdm
+import json
 
 
 def read_caption_flickr(f):
@@ -21,6 +23,14 @@ def read_caption_flickr(f):
     for id_temp, caption_temp in id_caption:
         images[id_temp]['caption'].append(caption_temp)
     return list(images.values())
+
+
+def read_caption_cn(json_filename):
+    """读取并整理中文图像-描述数据集的Caption数据
+    """
+    with open(json_filename, 'r') as f:
+       data = json.load(f)
+    return data
 
 
 def read_image(f, img_size=299):
@@ -62,10 +72,11 @@ def read_image(f, img_size=299):
 if __name__ == "__main__":
     import numpy as np
 
-    data = read_caption_flickr(r'E:\暑期文件传输\多模态数据集\flickr 30k\flickr30k\results_20130124.token')
+    data = read_caption_flickr(r'data\flickr\flickr30k-caption\results_20130124.token')
     train_data = data[0:31000]
     valid_data = data[31000:]
-
     samples = [valid_data[i] for i in np.random.choice(len(valid_data), 2)]
     print(np.random.choice(len(valid_data), 2))
-    print('csulzt')
+
+    data = read_caption_cn(r'D:\Multi-Model Dataset\cn\ai_challenger_caption_train_20170902\caption_train_annotations_20170902.json')
+    print('data')
