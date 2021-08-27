@@ -21,8 +21,6 @@ warnings.filterwarnings('ignore')
 # 模型配置
 maxlen = 64
 batch_size = 4
-steps_per_epoch = 1000
-epochs = 20
 
 # ============================英文=======================================
 # # 英文bert配置
@@ -46,7 +44,6 @@ caption_path = r'D:\Multi-Model Dataset\cn\ai_challenger_caption_train_20170902\
 image_path = 'D:/Multi-Model Dataset/cn/ai_challenger_caption_train_20170902/caption_train_images_20170902/'
 # 加载数据
 data = read_caption_cn(caption_path)
-train_data = data[0:200000]
 valid_data = data[200000:]
 
 # 加载并精简词表，建立分词器
@@ -56,28 +53,6 @@ token_dict, keep_tokens = load_vocab(
     startswith=['[PAD]', '[UNK]', '[CLS]', '[SEP]'],
 )
 tokenizer = Tokenizer(token_dict, do_lower_case=True)
-
-
-class data_generator(DataGenerator):
-    """数据生成器
-    """
-
-    def __iter__(self, random=False):
-        batch_images, batch_token_ids, batch_segment_ids = [], [], []
-        for is_end, D in self.sample(random):
-            img = image_path + D['image_id']
-            caption = np.random.choice(D['caption'])
-            token_ids, segment_ids = tokenizer.encode(caption, maxlen=maxlen)
-            batch_images.append(read_image(img))
-            batch_token_ids.append(token_ids)
-            batch_segment_ids.append(segment_ids)
-            if len(batch_token_ids) == self.batch_size or is_end:
-                batch_images = np.array(batch_images)
-                batch_images = preprocess_input(batch_images)
-                batch_token_ids = sequence_padding(batch_token_ids)
-                batch_segment_ids = sequence_padding(batch_segment_ids)
-                yield [batch_token_ids, batch_segment_ids, batch_images], None
-                batch_images, batch_token_ids, batch_segment_ids = [], [], []
 
 
 class CrossEntropy(Loss):
@@ -119,6 +94,7 @@ output = CrossEntropy(1)([model.inputs[0], model.outputs[0]])
 model = Model(model.inputs, output)
 model.compile(optimizer=Adam(1e-5))
 model.summary()
+model.load_weights('model/best_model.model')
 
 
 class AutoCaption(AutoRegressiveDecoder):
@@ -147,7 +123,7 @@ autocaption = AutoCaption(
 )
 
 
-def just_show():
+def show():
     samples = [valid_data[i] for i in np.random.choice(len(valid_data), 2)]  # 从valid_data中随机取两个
     for D in samples:
         img = image_path + D['image_id']
@@ -158,33 +134,8 @@ def just_show():
         print()
 
 
-class Evaluator(keras.callbacks.Callback):
-    """评估与保存
-    """
-
-    def __init__(self):
-        self.lowest = 1e10
-
-    def on_epoch_end(self, epoch, logs=None):
-        # 保存最优
-        if logs['loss'] <= self.lowest:
-            self.lowest = logs['loss']
-            model.save('model/best_model.model')
-        # 演示效果
-        just_show()
-
-
 if __name__ == '__main__':
-    evaluator = Evaluator()
-    train_generator = data_generator(train_data, batch_size)
-
-    model.fit(
-        train_generator.forfit(),
-        steps_per_epoch=len(train_generator),
-        epochs=epochs,
-        callbacks=[evaluator]
-    )
-
+    show()
 # else:
 #
 #     model.load_weights('model/best_model.weights')
